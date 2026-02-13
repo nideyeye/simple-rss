@@ -1,0 +1,35 @@
+{% extends 'base/base.html' %}
+
+{% block title %}稍后阅读 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>稍后阅读</h1>
+</div>
+
+<div class="article-list">
+    {% if read_laters %}
+        {% for item in read_laters %}
+        <article class="article-card">
+            <h2><a href="{% url 'core:article_detail' item.article.pk %}">{{ item.article.title }}</a></h2>
+            <div class="article-meta">
+                <span class="text-muted">{{ item.article.feed.title }}</span>
+                <span class="text-muted">添加于：{{ item.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            {% if item.article.summary %}
+            <p class="article-summary">{{ item.article.summary|truncatewords:30 }}</p>
+            {% endif %}
+            <div class="article-actions">
+                <form method="post" action="{% url 'reader:remove_read_later' item.article.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">移除</button>
+                </form>
+                <a href="{% url 'core:article_detail' item.article.pk %}" class="btn btn-sm">阅读</a>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p class="empty">暂无稍后阅读列表</p>
+    {% endif %}
+</div>
+{% endblock %}

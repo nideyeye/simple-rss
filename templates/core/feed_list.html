@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+
+{% block title %}订阅源列表 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>订阅源列表</h1>
+</div>
+
+<div class="feed-list">
+    {% if feeds %}
+        <div class="grid">
+            {% for feed in feeds %}
+            <div class="card">
+                <h2><a href="{% url 'core:feed_detail' feed.pk %}">{{ feed.title }}</a></h2>
+                <p class="text-muted">{{ feed.description }}</p>
+                {% if feed.category %}
+                <span class="badge">{{ feed.category.name }}</span>
+                {% endif %}
+                <div class="card-actions">
+                    <a href="{% url 'core:feed_articles' feed.pk %}" class="btn">查看文章</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; 首页</a>
+                <a href="?page={{ page_obj.previous_page_number }}">上一页</a>
+            {% endif %}
+
+            <span class="current">第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">下一页</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">末页 &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p class="empty">暂无订阅源</p>
+    {% endif %}
+</div>
+{% endblock %}

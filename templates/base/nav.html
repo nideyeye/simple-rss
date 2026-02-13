@@ -1,0 +1,20 @@
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="nav-logo">Simple RSS</a>
+        <ul class="nav-menu">
+            <li><a href="{% url 'core:feed_list' %}">订阅源</a></li>
+            <li><a href="{% url 'core:article_list' %}">文章列表</a></li>
+            <li><a href="{% url 'reader:favorites' %}">收藏</a></li>
+            <li><a href="{% url 'reader:read_later' %}">稍后阅读</a></li>
+        </ul>
+        <div class="nav-auth">
+            {% if user.is_authenticated %}
+                <span>{{ user.username }}</span>
+                <a href="/admin/">后台</a>
+                <a href="/admin/logout/">退出</a>
+            {% else %}
+                <a href="/admin/login/">登录</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

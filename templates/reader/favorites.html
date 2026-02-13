@@ -1,0 +1,35 @@
+{% extends 'base/base.html' %}
+
+{% block title %}我的收藏 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>我的收藏</h1>
+</div>
+
+<div class="article-list">
+    {% if favorites %}
+        {% for favorite in favorites %}
+        <article class="article-card">
+            <h2><a href="{% url 'core:article_detail' favorite.article.pk %}">{{ favorite.article.title }}</a></h2>
+            <div class="article-meta">
+                <span class="text-muted">{{ favorite.article.feed.title }}</span>
+                <span class="text-muted">收藏于：{{ favorite.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            {% if favorite.notes %}
+            <p class="article-notes"><strong>备注：</strong>{{ favorite.notes }}</p>
+            {% endif %}
+            <div class="article-actions">
+                <form method="post" action="{% url 'reader:remove_favorite' favorite.article.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">取消收藏</button>
+                </form>
+                <a href="{% url 'core:article_detail' favorite.article.pk %}" class="btn btn-sm">查看</a>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p class="empty">暂无收藏</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ article.title }} - Simple RSS{% endblock %}
+
+{% block content %}
+<article class="article-detail">
+    <div class="page-header">
+        <h1>{{ article.title }}</h1>
+        <div class="article-meta">
+            <span class="text-muted">来源：<a href="{% url 'core:feed_detail' article.feed.pk %}">{{ article.feed.title }}</a></span>
+            {% if article.pub_date %}
+            <span class="text-muted">发布时间：{{ article.pub_date|date:"Y-m-d H:i" }}</span>
+            {% endif %}
+            {% if article.author %}
+            <span class="text-muted">作者：{{ article.author }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="article-actions">
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'reader:add_favorite' article.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm">收藏</button>
+            </form>
+            <form method="post" action="{% url 'reader:add_read_later' article.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm">稍后阅读</button>
+            </form>
+        {% endif %}
+        <a href="{{ article.url }}" target="_blank" class="btn btn-sm">查看原文</a>
+    </div>
+
+    {% if article.summary %}
+    <div class="article-summary">
+        <h3>摘要</h3>
+        <p>{{ article.summary }}</p>
+    </div>
+    {% endif %}
+
+    {% if article.content %}
+    <div class="article-content">
+        {{ article.content|safe }}
+    </div>
+    {% endif %}
+</article>
+{% endblock %}

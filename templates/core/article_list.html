@@ -1,0 +1,52 @@
+{% extends 'base/base.html' %}
+
+{% block title %}文章列表 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>文章列表</h1>
+</div>
+
+<div class="article-list">
+    {% if articles %}
+        {% for article in articles %}
+        <article class="article-card">
+            <h2><a href="{% url 'core:article_detail' article.pk %}">{{ article.title }}</a></h2>
+            <div class="article-meta">
+                <span class="text-muted">{{ article.feed.title }}</span>
+                {% if article.pub_date %}
+                <span class="text-muted">{{ article.pub_date|date:"Y-m-d H:i" }}</span>
+                {% endif %}
+                {% if article.author %}
+                <span class="text-muted">作者：{{ article.author }}</span>
+                {% endif %}
+            </div>
+            {% if article.summary %}
+            <p class="article-summary">{{ article.summary|truncatewords:50 }}</p>
+            {% endif %}
+            <div class="article-actions">
+                <a href="{% url 'core:article_detail' article.pk %}" class="btn btn-sm">阅读全文</a>
+            </div>
+        </article>
+        {% endfor %}
+
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; 首页</a>
+                <a href="?page={{ page_obj.previous_page_number }}">上一页</a>
+            {% endif %}
+
+            <span class="current">第 {{ page_obj.number }} 页，共 {{ page_obj.paginator.num_pages }} 页</span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">下一页</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">末页 &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p class="empty">暂无文章</p>
+    {% endif %}
+</div>
+{% endblock %}

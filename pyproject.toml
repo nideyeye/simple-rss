@@ -1,0 +1,31 @@
+[project]
+name = "simple-rss"
+version = "0.1.0"
+description = "个人自用的极简 RSS 阅读器"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "django>=5.1",
+    "jinja2>=3.1",
+    "feedparser>=6.0",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-django>=4.5",
+    "ruff>=0.1",
+]
+celery = [
+    "celery>=5.3",
+    "redis>=5.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.development"
+python_files = ["test_*.py"]

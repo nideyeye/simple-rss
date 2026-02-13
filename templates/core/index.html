@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+
+{% block title %}首页 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>欢迎使用 Simple RSS</h1>
+    <p class="lead">极简的个人 RSS 阅读器</p>
+</div>
+
+<div class="features">
+    <div class="grid">
+        <div class="card">
+            <h2>订阅源管理</h2>
+            <p>轻松添加和管理您的 RSS 订阅源，支持分类组织。</p>
+            <a href="{% url 'core:feed_list' %}" class="btn">查看订阅源</a>
+        </div>
+
+        <div class="card">
+            <h2>文章阅读</h2>
+            <p>在统一的界面中阅读所有订阅源的文章。</p>
+            <a href="{% url 'core:article_list' %}" class="btn">阅读文章</a>
+        </div>
+
+        <div class="card">
+            <h2>稍后阅读</h2>
+            <p>保存感兴趣的文章，稍后慢慢阅读。</p>
+            <a href="{% url 'reader:read_later' %}" class="btn">稍后阅读</a>
+        </div>
+
+        <div class="card">
+            <h2>收藏夹</h2>
+            <p>收藏喜欢的文章，随时回顾。</p>
+            <a href="{% url 'reader:favorites' %}" class="btn">我的收藏</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.hero {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.lead {
+    font-size: 1.25rem;
+    color: #6c757d;
+}
+
+.features {
+    margin-top: 2rem;
+}
+
+.features .card {
+    text-align: center;
+}
+</style>
+{% endblock %}

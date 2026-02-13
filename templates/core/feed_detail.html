@@ -1,0 +1,52 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ feed.title }} - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ feed.title }}</h1>
+    {% if feed.category %}
+    <span class="badge">{{ feed.category.name }}</span>
+    {% endif %}
+</div>
+
+<div class="feed-detail">
+    <div class="info-group">
+        <label>订阅源地址：</label>
+        <a href="{{ feed.url }}" target="_blank">{{ feed.url }}</a>
+    </div>
+
+    {% if feed.description %}
+    <div class="info-group">
+        <label>描述：</label>
+        <p>{{ feed.description }}</p>
+    </div>
+    {% endif %}
+
+    <div class="info-group">
+        <label>状态：</label>
+        {% if feed.is_active %}
+        <span class="badge badge-success">启用中</span>
+        {% else %}
+        <span class="badge badge-danger">已禁用</span>
+        {% endif %}
+    </div>
+
+    <div class="info-group">
+        <label>抓取间隔：</label>
+        <span>{{ feed.fetch_interval }} 分钟</span>
+    </div>
+
+    {% if feed.last_fetch_at %}
+    <div class="info-group">
+        <label>最后抓取时间：</label>
+        <span>{{ feed.last_fetch_at|date:"Y-m-d H:i" }}</span>
+    </div>
+    {% endif %}
+
+    <div class="actions">
+        <a href="{% url 'core:feed_articles' feed.pk %}" class="btn btn-primary">查看文章</a>
+        <a href="{% url 'core:feed_list' %}" class="btn">返回列表</a>
+    </div>
+</div>
+{% endblock %}
