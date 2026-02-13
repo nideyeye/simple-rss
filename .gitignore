@@ -231,6 +231,32 @@ $RECYCLE.BIN/
 # Project specific
 media/
 staticfiles/
+
+# Security sensitive files (NEVER commit these!)
+.env
+.env.*
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+credentials/
+keys/
+certs/
+
+# API keys and secrets (be careful with these!)
+config/settings/local_settings.py
+config/settings/production.py
+*secret*.json
+*api_key*.txt
+*credentials*.json
+
+# User data and backups
+backups/
+*.sql
+*.sql.gz
+*.dump
+user_data/
 *.pid
 *.seed
 *.pid.lock
