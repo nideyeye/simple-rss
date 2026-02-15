@@ -43,21 +43,29 @@ class FeedCreateView(CreateView):
         response = super().form_valid(form)
         feed = self.object
 
-        # 自动抓取文章
+        # 自动抓取文章（同步方式）
         try:
             from .services.fetcher import RSSFetcher
             from .services.parser import RSSParser
+            import logging
 
-            # 抓取 RSS 内容
+            logger = logging.getLogger(__name__)
+
+            # 抓取 RSS 内容（使用较短的超时时间）
+            logger.info(f"开始抓取订阅源: {feed.url}")
             fetcher = RSSFetcher()
-            fetch_response = fetcher.fetch(feed.url)
+            fetch_response = fetcher.fetch(feed.url, timeout=10)  # 10 秒超时
 
             if fetch_response:
+                logger.info(f"抓取成功: {feed.url}")
+
                 # 解析 RSS 内容
                 parser = RSSParser()
                 feed_data = parser.parse(fetch_response['content'], fetch_response['encoding'])
 
                 if feed_data:
+                    logger.info(f"解析成功，找到 {len(feed_data['entries'])} 篇文章")
+
                     # 更新订阅源信息
                     if feed_data['title'] and not feed.title:
                         feed.title = feed_data['title']
@@ -88,17 +96,30 @@ class FeedCreateView(CreateView):
                         f'订阅源 "{feed.title}" 创建成功！已抓取 {new_count} 篇文章。'
                     )
                 else:
+                    feed.last_fetch_status = '解析失败'
+                    feed.save()
                     messages.warning(
                         self.request,
                         f'订阅源 "{feed.title}" 创建成功，但解析失败。请稍后手动抓取。'
                     )
             else:
+                feed.last_fetch_status = '抓取失败'
+                feed.last_fetch_at = timezone.now()
+                feed.save()
                 messages.warning(
                     self.request,
                     f'订阅源 "{feed.title}" 创建成功，但抓取失败。请检查 URL 是否正确。'
                 )
 
         except Exception as e:
+            import traceback
+            logger.error(f"抓取订阅源失败: {feed.url}, 错误: {str(e)}")
+            logger.error(traceback.format_exc())
+
+            feed.last_fetch_status = f'错误: {str(e)[:50]}'
+            feed.last_fetch_at = timezone.now()
+            feed.save()
+
             messages.error(
                 self.request,
                 f'订阅源 "{feed.title}" 创建成功，但自动抓取出错：{str(e)}'

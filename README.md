@@ -279,6 +279,28 @@ celery -A celery_tasks beat -l info
 
 详细的开发指南请参考 [CLAUDE.md](./CLAUDE.md)。
 
+## 故障排查
+
+遇到订阅源抓取问题？请查看 [故障排查指南](./docs/troubleshooting.md)。
+
+### 常用工具
+
+**测试 RSS URL 是否可访问：**
+```bash
+python scripts/test_rss_url.py <RSS_URL>
+
+# 示例
+python scripts/test_rss_url.py https://www.djangoproject.com/rss/weblog/
+```
+
+**手动抓取指定订阅源：**
+```bash
+python manage.py fetch_feed <订阅源ID> --timeout 15
+
+# 示例
+python manage.py fetch_feed 1 --timeout 15
+```
+
 ## 许可证
 
 MIT
