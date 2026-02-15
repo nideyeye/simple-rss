@@ -115,3 +115,21 @@ CLOUDFLARE_PROXY_DOMAIN = None  # 在 local_settings.py 中配置
 # 翻译服务配置（示例）
 TRANSLATION_API_URL = None  # 在 local_settings.py 中配置
 TRANSLATION_API_KEY = None  # 在 local_settings.py 中配置
+
+# Redis 配置
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+REDIS_PASSWORD = None  # 如果需要密码，在 local_settings.py 中配置
+
+# 缓存配置（在 development.py 或 production.py 中启用）
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Celery 配置（在 development.py 或 production.py 中启用）
+# CELERY_BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+# CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'

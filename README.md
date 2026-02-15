@@ -198,6 +198,69 @@ TRANSLATION_API_URL = 'https://api.example.com/translate'
 TRANSLATION_API_KEY = 'your-api-key'
 ```
 
+### Redis 配置
+
+项目使用 Redis 作为：
+- **缓存后端**：提升应用性能
+- **Celery 消息队列**：处理异步任务
+- **Celery 结果存储**：保存任务执行结果
+
+#### 1. 安装 Redis
+
+**macOS:**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get install redis-server
+sudo systemctl start redis
+```
+
+**Windows:**
+下载并安装 [Redis for Windows](https://github.com/microsoftarchive/redis/releases)
+
+#### 2. 配置 Redis 连接
+
+在 `config/settings/local_settings.py` 中自定义 Redis 配置（可选）：
+
+```python
+# 如果 Redis 不在本地或需要密码，取消注释并修改
+# REDIS_HOST = 'localhost'
+# REDIS_PORT = 6379
+# REDIS_DB = 0
+# REDIS_PASSWORD = 'your-password'  # 如果需要密码
+```
+
+#### 3. 验证 Redis 连接
+
+```bash
+# 检查 Redis 是否运行
+redis-cli ping
+# 应该返回：PONG
+```
+
+#### 4. 缓存配置详情
+
+- **开发环境**：使用 Redis 数据库 1 (`redis://localhost:6379/1`)
+- **生产环境**：使用 Redis 数据库 1 (`redis://localhost:6379/1`)
+- **Celery**：使用 Redis 数据库 0 (`redis://localhost:6379/0`)
+
+缓存配置项：
+- `KEY_PREFIX`: 缓存键前缀 `'simple_rss'`
+- `TIMEOUT`: 默认缓存过期时间 300 秒（5 分钟）
+
+#### 5. Celery 配置详情
+
+Celery 配置项：
+- `CELERY_TASK_SERIALIZER`: JSON 格式
+- `CELERY_RESULT_SERIALIZER`: JSON 格式
+- `CELERY_TIMEZONE`: 使用项目时区（`Asia/Shanghai`）
+- `CELERY_TASK_TIME_LIMIT`: 单个任务最大执行时间 30 分钟
+- `CELERY_WORKER_MAX_TASKS_PER_CHILD`: Worker 处理任务数后重启（防止内存泄漏）
+
 ## 定时任务
 
 使用 Celery 实现定时任务：

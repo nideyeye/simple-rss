@@ -1,0 +1,90 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ action }}订阅源 - Simple RSS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ action }}订阅源</h1>
+</div>
+
+<form method="post" class="form">
+    {% csrf_token %}
+
+    <div class="form-group">
+        <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div class="error">
+                {% for error in form.title.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.url.id_for_label }}">{{ form.url.label }}</label>
+        {{ form.url }}
+        {% if form.url.errors %}
+            <div class="error">
+                {% for error in form.url.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+            <div class="error">
+                {% for error in form.description.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+        {{ form.category }}
+        {% if form.category.errors %}
+            <div class="error">
+                {% for error in form.category.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+        {{ form.is_active }}
+        {% if form.is_active.errors %}
+            <div class="error">
+                {% for error in form.is_active.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.fetch_interval.id_for_label }}">{{ form.fetch_interval.label }}</label>
+        {{ form.fetch_interval }}
+        {% if form.fetch_interval.errors %}
+            <div class="error">
+                {% for error in form.fetch_interval.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">保存</button>
+        <a href="{% url 'core:feed_list' %}" class="btn">取消</a>
+    </div>
+</form>
+{% endblock %}

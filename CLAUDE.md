@@ -170,3 +170,4 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0'
 3. **测试**: 新功能必须添加相应的测试（放在各应用的 `tests/` 目录下）
 4. **代码规范**: 使用 ruff 进行代码检查和格式化（配置在 `pyproject.toml`）
 5. **依赖管理**: 使用 uv 管理依赖，不要手动修改 `requirements.txt`
+6. **订阅源自动抓取**: 创建订阅源后会自动尝试抓取文章，使用 RSSFetcher 和 RSSParser 服务
