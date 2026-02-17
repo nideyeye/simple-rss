@@ -53,6 +53,7 @@ class Feed(models.Model):
     is_active = models.BooleanField('是否启用', default=True)
     fetch_interval = models.IntegerField('抓取间隔（分钟）', default=60)
     last_fetch_at = models.DateTimeField('最后抓取时间', null=True, blank=True)
+    last_auto_fetch_at = models.DateTimeField('最后自动刷新时间', null=True, blank=True)
     last_fetch_status = models.CharField('最后抓取状态', max_length=50, blank=True)
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)

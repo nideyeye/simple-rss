@@ -12,6 +12,7 @@ urlpatterns = [
     path('feeds/', views.FeedListView.as_view(), name='feed_list'),
     path('feeds/create/', views.FeedCreateView.as_view(), name='feed_create'),
     path('feeds/<int:pk>/', views.FeedDetailView.as_view(), name='feed_detail'),
+    path('feeds/refresh/', views.refresh_all_feeds, name='refresh_feeds'),
     path('articles/', views.ArticleListView.as_view(), name='article_list'),
     path('articles/<int:feed_id>/', views.ArticleListView.as_view(), name='feed_articles'),
     path('article/<int:pk>/', views.ArticleDetailView.as_view(), name='article_detail'),

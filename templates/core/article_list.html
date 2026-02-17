@@ -5,6 +5,7 @@
 {% block content %}
 <div class="page-header">
     <h1>文章列表</h1>
+    <button id="refreshBtn" class="btn btn-primary" onclick="refreshAllFeeds()">刷新所有订阅源</button>
 </div>
 
 <div class="article-list">
@@ -49,4 +50,209 @@
         <p class="empty">暂无文章</p>
     {% endif %}
 </div>
+
+<!-- 刷新结果模态框 -->
+<div id="refreshModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>订阅源刷新结果</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="refreshLoading" style="text-align: center; padding: 20px;">
+                <p>正在刷新中，请稍候...</p>
+            </div>
+            <div id="refreshResults" style="display: none;">
+                <p>共刷新 <strong id="totalFeeds"></strong> 个订阅源</p>
+                <div id="resultsList"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close {
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+}
+
+.refresh-result-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border-left: 4px solid #ddd;
+}
+
+.refresh-result-item.success {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+}
+
+.refresh-result-item.error {
+    background-color: #f8d7da;
+    border-left-color: #dc3545;
+}
+
+.refresh-result-item .feed-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.refresh-result-item .feed-message {
+    font-size: 0.9em;
+    color: #666;
+}
+</style>
+
+<script>
+function refreshAllFeeds() {
+    const modal = document.getElementById('refreshModal');
+    const loading = document.getElementById('refreshLoading');
+    const results = document.getElementById('refreshResults');
+
+    // 显示模态框和加载状态
+    modal.style.display = 'block';
+    loading.style.display = 'block';
+    results.style.display = 'none';
+
+    // 禁用按钮
+    const refreshBtn = document.getElementById('refreshBtn');
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = '刷新中...';
+
+    // 发送刷新请求
+    fetch('{% url "core:refresh_feeds" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
+        document.getElementById('totalFeeds').textContent = data.total;
+
+        const resultsList = document.getElementById('resultsList');
+        resultsList.innerHTML = '';
+
+        data.results.forEach(result => {
+            const item = document.createElement('div');
+            item.className = `refresh-result-item ${result.status}`;
+
+            const title = document.createElement('div');
+            title.className = 'feed-title';
+            title.textContent = result.feed_title;
+
+            const message = document.createElement('div');
+            message.className = 'feed-message';
+            message.textContent = result.message;
+
+            item.appendChild(title);
+            item.appendChild(message);
+            resultsList.appendChild(item);
+        });
+    })
+    .catch(error => {
+        loading.style.display = 'none';
+        results.style.display = 'block';
+        document.getElementById('totalFeeds').textContent = '0';
+        document.getElementById('resultsList').innerHTML = '<p style="color: red;">刷新失败：' + error.message + '</p>';
+    })
+    .finally(() => {
+        // 恢复按钮
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = '刷新所有订阅源';
+    });
+}
+
+function closeModal() {
+    document.getElementById('refreshModal').style.display = 'none';
+}
+
+// 获取 CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// 点击模态框外部关闭
+window.onclick = function(event) {
+    const modal = document.getElementById('refreshModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

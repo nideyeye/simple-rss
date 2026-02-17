@@ -8,6 +8,7 @@ from celery import shared_task
 from core.models import Feed, Article
 from core.services.fetcher import RSSFetcher
 from core.services.parser import RSSParser
+from core.utils.article_utils import save_or_update_article
 
 logger = logging.getLogger(__name__)
 
@@ -62,27 +63,15 @@ def fetch_feed(feed_id: int):
 
     feed.last_fetch_status = '成功'
     feed.last_fetch_at = datetime.now()
+    feed.last_auto_fetch_at = datetime.now()
     feed.save()
 
     # 保存文章
     new_articles = 0
     for entry in feed_data['entries']:
-        # 检查文章是否已存在（通过链接或 GUID）
-        guid = entry.get('guid', entry['link'])
-        if Article.objects.filter(feed=feed, url=guid).exists():
-            continue
-
-        # 创建新文章
-        Article.objects.create(
-            feed=feed,
-            title=entry['title'] or '无标题',
-            url=entry['link'],
-            author=entry.get('author', ''),
-            summary=entry.get('summary', ''),
-            content=entry.get('content', ''),
-            pub_date=entry.get('pub_date'),
-        )
-        new_articles += 1
+        is_new, _ = save_or_update_article(feed, entry)
+        if is_new:
+            new_articles += 1
 
     logger.info(f"订阅源 {feed.title} 抓取完成，新增 {new_articles} 篇文章")
 

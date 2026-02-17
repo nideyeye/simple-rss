@@ -6,6 +6,7 @@ from django.utils import timezone
 from core.models import Feed, Article
 from core.services.fetcher import RSSFetcher
 from core.services.parser import RSSParser
+from core.utils.article_utils import save_or_update_article
 
 
 class Command(BaseCommand):
@@ -78,39 +79,12 @@ class Command(BaseCommand):
 
         # 保存文章
         new_count = 0
-        updated_count = 0
-
         for entry in feed_data['entries']:
-            guid = entry.get('guid', entry['link'])
-
-            # 检查文章是否已存在
-            existing_article = Article.objects.filter(feed=feed, url=guid).first()
-
-            if existing_article:
-                # 更新现有文章
-                existing_article.title = entry['title'] or '无标题'
-                existing_article.author = entry.get('author', '')
-                existing_article.summary = entry.get('summary', '')
-                existing_article.content = entry.get('content', '')
-                if entry.get('pub_date'):
-                    existing_article.pub_date = entry['pub_date']
-                existing_article.save()
-                updated_count += 1
-            else:
-                # 创建新文章
-                Article.objects.create(
-                    feed=feed,
-                    title=entry['title'] or '无标题',
-                    url=entry['link'],
-                    author=entry.get('author', ''),
-                    summary=entry.get('summary', ''),
-                    content=entry.get('content', ''),
-                    pub_date=entry.get('pub_date'),
-                )
+            is_new, _ = save_or_update_article(feed, entry)
+            if is_new:
                 new_count += 1
 
         self.stdout.write('=' * 80)
         self.stdout.write(self.style.SUCCESS(f'抓取完成!'))
-        self.stdout.write(f'  - 新增文章: {new_count} 篇')
-        self.stdout.write(f'  - 更新文章: {updated_count} 篇')
+        self.stdout.write(f'  - 新增/更新文章: {new_count} 篇')
         self.stdout.write(f'  - 总文章数: {Article.objects.filter(feed=feed).count()} 篇')

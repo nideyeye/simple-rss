@@ -18,6 +18,11 @@
                 {% if feed.category %}
                 <span class="badge">{{ feed.category.name }}</span>
                 {% endif %}
+                {% if feed.last_auto_fetch_at %}
+                <p class="text-muted" style="font-size: 0.85em;">
+                    上次自动刷新: {{ feed.last_auto_fetch_at|date:"Y-m-d H:i" }}
+                </p>
+                {% endif %}
                 <div class="card-actions">
                     <a href="{% url 'core:feed_articles' feed.pk %}" class="btn">查看文章</a>
                 </div>

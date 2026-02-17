@@ -6,8 +6,17 @@ from django.views.generic import ListView, DetailView, CreateView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import logging
 from .models import Feed, Article, Category
 from .forms import FeedForm
+from .services.fetcher import RSSFetcher
+from .services.parser import RSSParser
+from .utils.article_utils import save_or_update_article
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -78,17 +87,8 @@ class FeedCreateView(CreateView):
                     # 保存文章
                     new_count = 0
                     for entry in feed_data['entries']:
-                        guid = entry.get('guid', entry['link'])
-                        if not Article.objects.filter(feed=feed, url=guid).exists():
-                            Article.objects.create(
-                                feed=feed,
-                                title=entry['title'] or '无标题',
-                                url=entry['link'],
-                                author=entry.get('author', ''),
-                                summary=entry.get('summary', ''),
-                                content=entry.get('content', ''),
-                                pub_date=entry.get('pub_date'),
-                            )
+                        is_new, _ = save_or_update_article(feed, entry)
+                        if is_new:
                             new_count += 1
 
                     messages.success(
@@ -161,3 +161,88 @@ class ArticleDetailView(DetailView):
         obj.is_read = True
         obj.save()
         return obj
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def refresh_all_feeds(request):
+    """手动刷新所有订阅源"""
+    results = []
+    active_feeds = Feed.objects.filter(is_active=True)
+
+    for feed in active_feeds:
+        try:
+            # 抓取 RSS 内容
+            fetcher = RSSFetcher()
+            fetch_response = fetcher.fetch(feed.url, timeout=30)
+
+            if not fetch_response:
+                results.append({
+                    'feed_id': feed.pk,
+                    'feed_title': feed.title,
+                    'status': 'error',
+                    'message': '抓取失败'
+                })
+                feed.last_fetch_status = '抓取失败'
+                feed.last_fetch_at = timezone.now()
+                feed.save()
+                continue
+
+            # 解析 RSS 内容
+            parser = RSSParser()
+            feed_data = parser.parse(fetch_response['content'], fetch_response['encoding'])
+
+            if not feed_data:
+                results.append({
+                    'feed_id': feed.pk,
+                    'feed_title': feed.title,
+                    'status': 'error',
+                    'message': '解析失败'
+                })
+                feed.last_fetch_status = '解析失败'
+                feed.last_fetch_at = timezone.now()
+                feed.save()
+                continue
+
+            # 更新订阅源信息
+            if feed_data['title'] and not feed.title:
+                feed.title = feed_data['title']
+            if feed_data['description'] and not feed.description:
+                feed.description = feed_data['description']
+
+            feed.last_fetch_status = '成功'
+            feed.last_fetch_at = timezone.now()
+            feed.save()
+
+            # 保存文章
+            new_articles = 0
+            for entry in feed_data['entries']:
+                is_new, _ = save_or_update_article(feed, entry)
+                if is_new:
+                    new_articles += 1
+
+            results.append({
+                'feed_id': feed.pk,
+                'feed_title': feed.title,
+                'status': 'success',
+                'message': f'成功，新增 {new_articles} 篇文章'
+            })
+            logger.info(f"订阅源 {feed.title} 刷新完成，新增 {new_articles} 篇文章")
+
+        except Exception as e:
+            logger.error(f"刷新订阅源失败 {feed.title}: {str(e)}")
+            results.append({
+                'feed_id': feed.pk,
+                'feed_title': feed.title,
+                'status': 'error',
+                'message': str(e)[:100]
+            })
+            feed.last_fetch_status = f'错误: {str(e)[:50]}'
+            feed.last_fetch_at = timezone.now()
+            feed.save()
+
+    return JsonResponse({
+        'success': True,
+        'total': len(active_feeds),
+        'results': results
+    })
